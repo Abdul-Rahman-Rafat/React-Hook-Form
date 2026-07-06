@@ -1,3 +1,7 @@
+import axios from "axios";
+
+import { useState } from "react";
+
 //react hook form
 import { useForm } from "react-hook-form";
 //zod
@@ -39,6 +43,9 @@ export default function SignupPage() {
     trigger,
     getFieldState,
     watch,
+    setError, // NEW: لإضافة Error يدويًا
+    clearErrors, // NEW: لمسح الـ Error اليدوي
+
     formState: { errors },
   } = useForm({
     mode: "onBlur",
@@ -49,23 +56,47 @@ export default function SignupPage() {
   const confirmPassword = watch("confirmPassword");
 
   const emailRegister = register("email");
-
   const onBlurEmail = async (e) => {
-    console.log("Blur Fired");
+    const isValid = await trigger("email");
 
-    // console.log("Email input blurred:", e.target.value);
-    await trigger("email");
-    const { isDirty, invalid, error } = getFieldState("email");
-    if (!invalid && isDirty) {
-      console.log("Email is valid and has been modified:", e.target.value);
-      console.log("Email field state:", { isDirty, invalid, error });
-    } else if (!isDirty) {
-      console.log("email is empty");
+    if (!isValid) return;
+
+    // // NEW: بدأنا فحص الإيميل
+    // setIsCheckingEmail(true);
+    setEmailAvailable(false); // NEW
+    setIsCheckingEmail(true);
+
+    try {
+      const { data } = await axios.get("https://dummyjson.com/users");
+
+      const emailExists = data.users.some(
+        (user) => user.email.toLowerCase() === e.target.value.toLowerCase(),
+      );
+
+      if (emailExists) {
+        setError("email", {
+          type: "manual",
+          message: "Email is already in use",
+        });
+      } else {
+        clearErrors("email");
+
+        // NEW: الإيميل متاح
+        setEmailAvailable(true);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      // NEW: انتهى الفحص سواء نجح أو فشل
+      setIsCheckingEmail(false);
     }
-    // هنا بعد كده هتحط الـ API call بتاعك عشان تتأكد من الـ email لو موجود ولا لأ
   };
 
   const onSubmit = (data) => console.log(data);
+
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  // NEW: هل الإيميل متاح؟
+  const [emailAvailable, setEmailAvailable] = useState(false);
   return (
     <>
       <div className="mx-auto mt-16 max-w-7xl text-center bg-[#101828] text-white p-3 rounded-2xl shadow-lg  sm:mt-20">
@@ -155,9 +186,21 @@ export default function SignupPage() {
                     onBlurEmail(e);
                   }}
                 />
-                {errors["email"] && (
+                {errors.email && (
                   <p className="mt-1 text-sm text-red-500">
-                    {errors["email"].message}
+                    {errors.email.message}
+                  </p>
+                )}
+
+                {/* NEW: تظهر أثناء فحص الإيميل */}
+                {isCheckingEmail && (
+                  <p className="mt-1 text-sm text-blue-400">
+                    Checking email...
+                  </p>
+                )}
+                {emailAvailable && (
+                  <p className="mt-1 text-sm text-green-400">
+                    Email is available for use
                   </p>
                 )}
               </div>
