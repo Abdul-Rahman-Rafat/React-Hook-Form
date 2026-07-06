@@ -13,8 +13,12 @@ const schema = z
     "last-name": z
       .string()
       .min(2, "Last name must be at least 2 characters")
+
       .max(30, "Last name must be less than 30 characters"),
-    email: z.string().email("Invalid email address"),
+    email: z
+      .string()
+      .nonempty("Email is required")
+      .email("Invalid email address"),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")
@@ -32,14 +36,34 @@ export default function SignupPage() {
   const {
     register,
     handleSubmit,
+    trigger,
+    getFieldState,
     watch,
     formState: { errors },
   } = useForm({
+    mode: "onBlur",
     resolver: zodResolver(schema),
   });
 
   const password = watch("password");
   const confirmPassword = watch("confirmPassword");
+
+  const emailRegister = register("email");
+
+  const onBlurEmail = async (e) => {
+    console.log("Blur Fired");
+
+    // console.log("Email input blurred:", e.target.value);
+    await trigger("email");
+    const { isDirty, invalid, error } = getFieldState("email");
+    if (!invalid && isDirty) {
+      console.log("Email is valid and has been modified:", e.target.value);
+      console.log("Email field state:", { isDirty, invalid, error });
+    } else if (!isDirty) {
+      console.log("email is empty");
+    }
+    // هنا بعد كده هتحط الـ API call بتاعك عشان تتأكد من الـ email لو موجود ولا لأ
+  };
 
   const onSubmit = (data) => console.log(data);
   return (
@@ -125,7 +149,11 @@ export default function SignupPage() {
                   name="email"
                   autoComplete="email"
                   className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
-                  {...register("email")}
+                  {...emailRegister}
+                  onBlur={(e) => {
+                    emailRegister.onBlur(e); // لازم تستدعيه
+                    onBlurEmail(e);
+                  }}
                 />
                 {errors["email"] && (
                   <p className="mt-1 text-sm text-red-500">
