@@ -1,12 +1,25 @@
 import "./App.css";
+import { useForm } from "react-hook-form";
+
 function App() {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm();
+
+  const onSubmit = (data) => console.log(data);
   return (
     <>
       <div className="mx-auto mt-16 max-w-7xl text-center bg-[#101828] text-white p-3 rounded-2xl shadow-lg  sm:mt-20">
         {" "}
         React Hook Form " Sign up "
       </div>
-      <form className="mx-auto mt-16 max-w-7xl sm:mt-20 bg-[#101828] p-10 rounded-2xl">
+      <form
+        className="mx-auto mt-16 max-w-7xl sm:mt-20 bg-[#101828] p-10 rounded-2xl"
+        onSubmit={handleSubmit(onSubmit)}
+      >
         <div>
           <h2 className="text-base/7 font-semibold text-white">
             Personal Information
@@ -30,6 +43,9 @@ function App() {
                   name="first-name"
                   autoComplete="given-name"
                   className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+                  {...register("first-name", {
+                    required: "First name is required",
+                  })}
                 />
               </div>
             </div>
@@ -48,6 +64,9 @@ function App() {
                   name="last-name"
                   autoComplete="family-name"
                   className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6"
+                  {...register("last-name", {
+                    required: "Last name is required",
+                  })}
                 />
               </div>
             </div>
@@ -176,6 +195,17 @@ function App() {
               </div>
             </div>
           </div>
+        </div>
+        <div className="mt-6 flex items-center justify-end gap-x-6">
+          <button type="button" className="text-sm/6 font-semibold text-white">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+          >
+            Save
+          </button>
         </div>
       </form>
     </>
